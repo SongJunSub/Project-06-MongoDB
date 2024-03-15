@@ -1,7 +1,7 @@
 const { Router } = require("express");
 const userRouter = Router();
 const mongoose = require("mongoose");
-const { User } = require("../models");
+const {User, Blog, Comment} = require("../models");
 
 userRouter.get("/", async (req, res) => {
     try{
@@ -45,8 +45,17 @@ userRouter.post("/", async (req, res) => {
 userRouter.delete("/:userId", async (req, res) => {
     try {
         const { userId } = req.params;
-        if(!mongoose.isValidObjectId(userId)) return res.status(400).send({ e: "Invalid User ID" });
-        const user = await User.findOneAndDelete({ _id: userId });
+
+        if(!mongoose.isValidObjectId(userId))
+            return res.status(400).send({ e: "Invalid User ID" });
+
+        const [user] = await Promise.all([
+            User.findOneAndDelete({_id: userId}),
+            Blog.deleteMany({"user._id": userId}),
+            Blog.updateMany({"comments.user": userId}, {$pull: {comments: {user: userId}}}),
+            Comment.deleteMany({user: userId})
+        ])
+
         return res.send({ user });
     }
     catch(e){
@@ -65,16 +74,21 @@ userRouter.put("/:userId", async (req, res) => {
         if(age && typeof age !== "number") return res.status(400).send({e: "Age must be a number"});
         if(name && typeof name.first !== "string" && typeof name.last !== "string") return res.status(400).send({e: "First and Last name are String"});
 
-        //let updateBody = {};
-        //if(age) updateBody.age = age;
-        //if(name) updateBody.name = name;
-        //const user = await User.findByIdAndUpdate(userId, updateBody, { new: true });
-
         let user = await User.findById(userId);
-        console.log({ userBeforeEdit: user });
+
         if(age) user.age = age;
-        if(name) user.name = name;
-        console.log({ userAfterEdit: user });
+        if(name){
+            user.name = name;
+            await Promise.all([
+                Blog.updateMany({"user._id": userId}, {"user.name": name}),
+                Blog.updateOne(
+                    {},
+                    {"comments.$[comment].userFullName": `${name.first} ${name.last}`},
+                    {arrayFilters: [{"comment.user": userId}]}
+                )
+            ])
+        }
+
         await user.save();
 
         return res.send({ user });
