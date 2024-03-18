@@ -35,12 +35,23 @@ CommentRouter.post("/", async (req, res) => {
             content,
             user,
             userFullName: `${user.name.first} ${user.name.last}`,
-            blog
+            blog: blogId
         });
 
+        // await Promise.all([
+        //     await comment.save(),
+        //     await Blog.updateOne({_id: blogId}, {$push: {comments: comment}})
+        // ]);
+
+        blog.commentsCount++;
+        blog.comments.push(comment);
+
+        if(blog.commentsCount > 1) blog.comments.shift();
+
         await Promise.all([
-            await comment.save(),
-            await Blog.updateOne({_id: blogId}, {$push: {comments: comment}})
+            comment.save(),
+            blog.save()
+            //await Blog.updateOne({_id: blogId}, {$inc: {commentsCount: 1}})
         ]);
 
         return res.send({ comment });
@@ -53,12 +64,18 @@ CommentRouter.post("/", async (req, res) => {
 })
 
 CommentRouter.get("/", async (req, res) => {
+    let {page} = req.query;
+    page = parseInt(page);
+
     const { blogId } = req.params;
 
     if(!isValidObjectId(blogId))
         return res.status(400).send({err: "blogId is invalid"});
 
-    const comments = await Comment.find({ blog: blogId });
+    const comments = await Comment.find({ blog: blogId })
+        .sort({createdAt: -1})
+        .skip(page * 3)
+        .limit(3);
 
     return res.send({ comments });
 })

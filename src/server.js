@@ -12,7 +12,7 @@ const server = async () => {
     try {
         await mongoose.connect(mongoDBURL);
         console.log("MongoDB Connected");
-        mongoose.set("debug", true);
+        //mongoose.set("debug", true);
 
         app.use(express.json());
         app.use("/user", userRouter);
@@ -22,9 +22,9 @@ const server = async () => {
             console.log("Server Listening On Port 3000");
 
             //Faker를 이용하여 가상 데이터 생성
-            // for(let i=0; i<20; i++){
-            // await generateFakeData(3, 10, 50);
-            // }
+            //console.time("Insert Start");
+            //await generateFakeData(10, 2, 10);
+            //console.timeEnd("Insert End");
         });
     }
     catch(e) {
