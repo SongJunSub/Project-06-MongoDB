@@ -8,7 +8,7 @@
     "nodemon": "^3.1.0"
   },
   "scripts": {
-    "start": "node src/server.js",
+    "start": "env-cmd node src/server.js",
     "dev": "env-cmd nodemon --ignore client.js src/server.js"
   }
 }
