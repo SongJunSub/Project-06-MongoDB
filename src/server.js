@@ -23,7 +23,7 @@ const server = async () => {
 
             //Faker를 이용하여 가상 데이터 생성
             //console.time("Insert Start");
-            //await generateFakeData(10, 2, 10);
+            //await generateFakeData(10, 2, 15);
             //console.timeEnd("Insert End");
         });
     }
