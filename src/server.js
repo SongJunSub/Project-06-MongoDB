@@ -8,9 +8,10 @@ const { generateFakeData } = require("../faker2");
 const server = async () => {
 
     try {
-        const {mongoDBURL} = process.env;
+        const {mongoDBURL, PORT} = process.env;
 
-        if(!mongoDBURL) throw Error("mongoDBURL is required.")
+        if(!mongoDBURL) throw Error("mongoDBURL is required.");
+        if(!PORT) throw Error("PORT is required.");
 
         await mongoose.connect(mongoDBURL);
         console.log("MongoDB Connected");
@@ -20,8 +21,8 @@ const server = async () => {
         app.use("/user", userRouter);
         app.use("/blog", BlogRouter);
 
-        app.listen(3000, async () => {
-            console.log("Server Listening On Port 3000");
+        app.listen(PORT, async () => {
+            console.log(`Server Listening On Port ${PORT}`);
 
             //Faker를 이용하여 가상 데이터 생성
             //console.time("Insert Start");
